@@ -4,7 +4,7 @@ PORT = usb
 FILENAME = amalu001_prototype1
 COMPILEO = avr-gcc -Os -mmcu=$(DEVICE)
 COMPILE = avr-gcc -mmcu=$(DEVICE)
-
+PART = m1284p
 all: build upload clean
 
 build:
@@ -13,7 +13,7 @@ build:
 	avr-objcopy -j .text -j .data -O ihex $(FILENAME).elf $(FILENAME).hex
 
 upload:
-	$avrdude -P $(PORT) -p $(DEVICE) -c $(PROGRAMMER) -e -U flash:w:$(FILENAME).hex
+	avrdude -P $(PORT) -p $(PART) -c $(PROGRAMMER) -e -U flash:w:$(FILENAME).hex -F 
 
 clean:
 	rm $(FILENAME).o
