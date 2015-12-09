@@ -254,6 +254,9 @@ int MenuFct(int state)
 					data = 0x04;
 				}
 			}
+			if(USART_ISSendReady(0)){
+				USART_Send(data, 0);
+			}
 			cnt++;
 
 			break;
@@ -271,6 +274,9 @@ int MenuFct(int state)
 
 int main(void)
 {
+	initUSART(0);
+	UASART_Flash(0);
+
 	DDRA = 0xFF; PORTA = 0x00; //lcd data_bus
 	DDRB = 0xFF; PORTB = 0x00; //lcd control_bus
 	DDRC = 0xF0; PORTC = 0x0F; //keypad

@@ -35,11 +35,11 @@ char pat_arr [] = {~0x04, ~0x04, ~0x04, ~0x1F, ~0x1F, ~0x04, ~0x04, ~0x04};
 unsigned char column; 			//column select
 unsigned char pattern;			//pattern to display on row
 unsigned char cnt = 0;			//counter for lcd display
-unsigned char roomData = 0x84;  //data received via USART from uc1
+unsigned char roomData;		    //data received via USART from uc1
 unsigned char roomNum;			//display led in room # quadrant
 unsigned char roomLock;			//if(1){led off} else{led off}
 
-enum roomState {init, receive, display};
+enum roomState {init, receive, input, display};
 int RoomFct(int state) {
 
 
@@ -50,6 +50,10 @@ int RoomFct(int state) {
 			break;
 		
 		case receive:
+			state = input;
+			break;
+
+		case input:
 			state = display;
 			break;
 			
@@ -67,8 +71,15 @@ int RoomFct(int state) {
 		case init:
 			cnt = 0;
 			break;
-		
+
 		case receive:
+		if(USART_HasReceived(0)){
+			roomData = USART_Receive(0);
+			USART_Flush(0);
+		}
+			break;
+		
+		case input:
 			roomNum = roomData & 0x0F;
 			roomLock = (roomData & 0x80) >> 7;
 			if(roomNum == 1)
@@ -141,6 +152,8 @@ int RoomFct(int state) {
 
 
 int main(void) {
+
+	initUSART(0);
 
 	DDRB = 0xFF; PORTB = 0x00; //column select LED matrix 5x8
 	DDRA = 0xFF; PORTA = 0x00; //pattern display LED matrix 5x8
