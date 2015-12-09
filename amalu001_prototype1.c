@@ -144,7 +144,7 @@ int MenuFct(int state)
 					isLock = 1;
 					state = getRoom;
 				}
-				if(input == 'B')
+				else if(input == 'B')
 				{
 					isLock = 0;
 					state = getRoom;
@@ -152,6 +152,10 @@ int MenuFct(int state)
 				else if(input == 'C')
 				{
 					state = quit;
+				}
+				else
+				{
+					state = printMenu;
 				}
 			}
 			break;

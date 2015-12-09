@@ -73,44 +73,44 @@ int RoomFct(int state) {
 				{
 					if(roomLock)
 					{
-						pat_arr[7] = ~0x05;
+						pat_arr[7] = pat_arr[7]  & ~0x05;
 					}
 					else
 					{
-						pat_arr[7] = ~0x04;
+						pat_arr[7] = pat_arr[7] | ~0xEF; 
 					}
 				}
 				else if(roomNum == 2)
 				{
 					if(roomLock)
 					{
-						pat_arr[7] = ~0x14;
+						pat_arr[7] = pat_arr[7] & ~0x14;
 					}
 					else
 					{
-						pat_arr[7] = ~0x04;
+						pat_arr[7] |= ~0x14;
 					}
 				}
 				else if(roomNum == 3)
 				{
 					if(roomLock)
 					{
-						pat_arr[0] = ~0x05;
+						pat_arr[0] = pat_arr[0] & ~0x05;
 					}
 					else
 					{
-						pat_arr[0] = ~0x04;
+						pat_arr[0] |= ~0x04;
 					}
 				}
 				else if(roomNum == 4)
 				{
 					if(roomLock)
 					{
-						pat_arr[0] = ~0x14;
+						pat_arr[0] = pat_arr[0] & ~0x14;
 					}
 					else
 					{
-						pat_arr[0] = ~0x04;
+						pat_arr[0] |= ~0x14;
 					}
 				}
 			}
