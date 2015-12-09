@@ -178,6 +178,10 @@ int MenuFct(int state)
 				state = waitMenu;
 				isSent = 0;
 			}
+			else
+			{
+				state = send;
+			}
 			break;
 		case quit:
 		//if(cnt == 15)
@@ -274,6 +278,11 @@ int MenuFct(int state)
 				USART_Send(data, 0);
 				isSent = 1;
 			}
+			if(USART_IsSendReady(1)){
+				USART_Send('R', 1);
+				isSent = 1;
+			}
+
 			break;
 		case quit:
 			LCD_ClearScreen();
@@ -291,6 +300,8 @@ int main(void)
 {
 	initUSART(0);
 	USART_Flush(0);
+	initUSART(1);
+	USART_Flush(1);
 
 	DDRA = 0xFF; PORTA = 0x00; //lcd data_bus
 	DDRB = 0xFF; PORTB = 0x00; //lcd control_bus
