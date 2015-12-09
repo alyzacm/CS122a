@@ -22,6 +22,7 @@ unsigned char input;					//init with GetKeypad()
 int cursor = 10;						//cursor for lcd display
 unsigned char isLock = -1;				//bool isLock,1 lock; isLock,0 unlock
 unsigned char data = 0x00;				//char to send with USART to uc2
+unsigned char isSent = 0;
 
 enum state{wait, readPW, checkPW, validPW, invalidPW};
 int PasswordFct(int state)
@@ -122,7 +123,7 @@ int PasswordFct(int state)
 
 }
 
-enum menuState {waitMenu, printMenu, getRoom, roomStatus, quit};
+enum menuState {waitMenu, printMenu, getRoom, roomStatus, send, quit};
 int MenuFct(int state)
 {
 	switch(state)
@@ -165,8 +166,14 @@ int MenuFct(int state)
 		if(cnt == 10)
 		{
 			cnt = 0;
-			state = waitMenu;
+			state = send;
 		}
+			break;
+		case send:
+			if(isSent){
+				state = waitMenu;
+				isSent = 0;
+			}
 			break;
 		case quit:
 		//if(cnt == 15)
@@ -216,7 +223,11 @@ int MenuFct(int state)
 			break;
 		case roomStatus:
 			if(isLock)
-			{
+			{		
+				LCD_DisplayString(1,"room   is now     locked!");
+				LCD_Cursor(6);
+				LCD_WriteData(input);
+				LCD_Cursor(32);
 				if(input == '1'){
 					data = 0x81;
 				}
@@ -229,16 +240,13 @@ int MenuFct(int state)
 				else if(input == '4'){
 					data = 0x84;
 				}
-				if(USART_IsSendReady(0)){
-					USART_Send(0x81, 0);
-					LCD_DisplayString(1,"room   is now     locked!");
-					LCD_Cursor(6);
-					LCD_WriteData(input);
-					LCD_Cursor(32);
-				}
 			}
 			else
 			{
+				LCD_DisplayString(1,"room   is now     unlocked!");
+				LCD_Cursor(6);
+				LCD_WriteData(input);
+				LCD_Cursor(32);
 				if(input == '1'){
 					data = 0x01;
 				}
@@ -251,17 +259,17 @@ int MenuFct(int state)
 				else if(input == '4'){
 					data = 0x04;
 				}
-				if(USART_IsSendReady(0)){
-					USART_Send(0x01, 0);
-					LCD_DisplayString(1,"room   is now     unlocked!");
-					LCD_Cursor(6);
-					LCD_WriteData(input);
-					LCD_Cursor(32);
-				}
+				
 			}
 
 			cnt++;
 
+			break;
+		case send:
+			if(USART_IsSendReady(0)){
+				USART_Send(data, 0);
+				isSent = 1;
+			}
 			break;
 		case quit:
 			LCD_ClearScreen();

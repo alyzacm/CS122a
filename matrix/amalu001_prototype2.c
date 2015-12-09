@@ -38,7 +38,7 @@ unsigned char cnt = 0;			//counter for lcd display
 unsigned char roomData = 0x84;		    //data received via USART from uc1
 unsigned char roomNum;			//display led in room # quadrant
 unsigned char roomLock;			//if(1){led off} else{led off}
-unsigned char isSent = 0;		//bool isSent 1, sent; isSent 0, not sent
+unsigned char isReceived = 0;		//bool isReceived 1, data; isReceived 0, no data
 enum roomState {init, receive, input, display};
 int RoomFct(int state) {
 
