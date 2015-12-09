@@ -10,17 +10,18 @@
 #include "keypad.h"
 #include "lcd.h"
 #include "scheduler.h"
+#include "usart_ATmega1284.h"
 
-unsigned char go = 0;
-unsigned char i = 0;
-unsigned char cnt = 0;
-unsigned char isPasswordValid = -1;
+unsigned char go = 0;					//global variable
+unsigned char i = 0;					//count button presses
+unsigned char cnt = 0;					//counter for lcd display
+unsigned char isPasswordValid = -1;		//bool isPasswordValid,1 valid; isPasswordValid, 0 invalid
 unsigned char setPassword[4] = {'1','2','3','4'};
-unsigned char password[4];
-unsigned char input;
-int cursor = 10;
-unsigned char isLock = -1;
-unsigned char data = 0x00;
+unsigned char password[4];				//user input password
+unsigned char input;					//init with GetKeypad()
+int cursor = 10;						//cursor for lcd display
+unsigned char isLock = -1;				//bool isLock,1 lock; isLock,0 unlock
+unsigned char data = 0x00;				//char to send with USART to uc2
 
 enum state{wait, readPW, checkPW, validPW, invalidPW};
 int PasswordFct(int state)
@@ -64,8 +65,8 @@ int PasswordFct(int state)
 				state = wait;
 			}
 			break;
-		case invalidPW:
-			if(i == 5)
+		case invalidPW: 
+			if(i == 5) //for lcd display
 			{
 				i = 0;
 				state = readPW;
@@ -95,7 +96,7 @@ int PasswordFct(int state)
 			
 			break;
 		case checkPW:
-			if(atoi(setPassword) == atoi(password))
+			if(atoi(setPassword) == atoi(password)) //check password arrays
 			{
 				isPasswordValid = 1;
 			}
@@ -258,8 +259,6 @@ int MenuFct(int state)
 			break;
 		case quit:
 			LCD_ClearScreen();
-			//LCD_DisplayString(1,"Goodbye!");
-			//cnt++;
 			go = 0;
 			break;
 		

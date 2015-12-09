@@ -2,7 +2,7 @@
 #include "scheduler.h"
 #include "bit.h"
 
-// Ensure DDRC is setup as output
+// Ensure DDRB is setup as output
 void transmit_data(unsigned char data) {
 	unsigned char i;
 	for (i = 0; i < 8 ; ++i) {
@@ -20,15 +20,7 @@ void transmit_data(unsigned char data) {
 	PORTB = 0x00;
 }
 
-char col_arr [] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-char pat_arr [] = {~0x04, ~0x04, ~0x04, ~0x1F, ~0x1F, ~0x04, ~0x04, ~0x04};
-unsigned char column;
-unsigned char pattern;
-unsigned char cnt = 0;
-unsigned char roomData = 0x84;
-unsigned char roomNum;
-unsigned char roomLock;
-
+//pattern displays partition of matrix into 4 rooms as shown below
 //room layout
 	//1 | 2
 	//  |
@@ -38,6 +30,15 @@ unsigned char roomLock;
 	//  |
 	//  |
 	//3 | 4
+char col_arr [] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+char pat_arr [] = {~0x04, ~0x04, ~0x04, ~0x1F, ~0x1F, ~0x04, ~0x04, ~0x04};
+unsigned char column; 			//column select
+unsigned char pattern;			//pattern to display on row
+unsigned char cnt = 0;			//counter for lcd display
+unsigned char roomData = 0x84;  //data received via USART from uc1
+unsigned char roomNum;			//display led in room # quadrant
+unsigned char roomLock;			//if(1){led off} else{led off}
+
 enum roomState {init, receive, display};
 int RoomFct(int state) {
 
@@ -141,8 +142,8 @@ int RoomFct(int state) {
 
 int main(void) {
 
-	DDRB = 0xFF; PORTB = 0x00;
-	DDRA = 0xFF; PORTA = 0x00;
+	DDRB = 0xFF; PORTB = 0x00; //column select LED matrix 5x8
+	DDRA = 0xFF; PORTA = 0x00; //pattern display LED matrix 5x8
 
 	tasksNum = 1; // declare number of tasks
 	task tsks[tasksNum]; // initialize the task array
