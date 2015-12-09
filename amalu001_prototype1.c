@@ -217,11 +217,6 @@ int MenuFct(int state)
 		case roomStatus:
 			if(isLock)
 			{
-				data = 0x80;
-				LCD_DisplayString(1,"room   is now     locked!");
-				LCD_Cursor(6);
-				LCD_WriteData(input);
-				LCD_Cursor(32);
 				if(input == '1'){
 					data = 0x81;
 				}
@@ -234,13 +229,16 @@ int MenuFct(int state)
 				else if(input == '4'){
 					data = 0x84;
 				}
+				if(USART_IsSendReady(0)){
+					USART_Send(0x81, 0);
+					LCD_DisplayString(1,"room   is now     locked!");
+					LCD_Cursor(6);
+					LCD_WriteData(input);
+					LCD_Cursor(32);
+				}
 			}
 			else
 			{
-				LCD_DisplayString(1,"room   is now     unlocked!");
-				LCD_Cursor(6);
-				LCD_WriteData(input);
-				LCD_Cursor(32);
 				if(input == '1'){
 					data = 0x01;
 				}
@@ -253,10 +251,15 @@ int MenuFct(int state)
 				else if(input == '4'){
 					data = 0x04;
 				}
+				if(USART_IsSendReady(0)){
+					USART_Send(0x01, 0);
+					LCD_DisplayString(1,"room   is now     unlocked!");
+					LCD_Cursor(6);
+					LCD_WriteData(input);
+					LCD_Cursor(32);
+				}
 			}
-			if(USART_ISSendReady(0)){
-				USART_Send(data, 0);
-			}
+
 			cnt++;
 
 			break;
@@ -275,7 +278,7 @@ int MenuFct(int state)
 int main(void)
 {
 	initUSART(0);
-	UASART_Flash(0);
+	USART_Flush(0);
 
 	DDRA = 0xFF; PORTA = 0x00; //lcd data_bus
 	DDRB = 0xFF; PORTB = 0x00; //lcd control_bus

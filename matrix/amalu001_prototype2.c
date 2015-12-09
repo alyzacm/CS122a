@@ -1,6 +1,6 @@
 #include <avr/io.h>
-#include "scheduler.h"
-#include "bit.h"
+#include "scheduler.h"    
+#include "usart_ATmega1284.h"
 
 // Ensure DDRB is setup as output
 void transmit_data(unsigned char data) {
@@ -35,10 +35,10 @@ char pat_arr [] = {~0x04, ~0x04, ~0x04, ~0x1F, ~0x1F, ~0x04, ~0x04, ~0x04};
 unsigned char column; 			//column select
 unsigned char pattern;			//pattern to display on row
 unsigned char cnt = 0;			//counter for lcd display
-unsigned char roomData;		    //data received via USART from uc1
+unsigned char roomData = 0x84;		    //data received via USART from uc1
 unsigned char roomNum;			//display led in room # quadrant
 unsigned char roomLock;			//if(1){led off} else{led off}
-
+unsigned char isSent = 0;		//bool isSent 1, sent; isSent 0, not sent
 enum roomState {init, receive, input, display};
 int RoomFct(int state) {
 
@@ -50,7 +50,10 @@ int RoomFct(int state) {
 			break;
 		
 		case receive:
-			state = input;
+			if(isSent){
+				state = input;
+				isSent = 0;
+			}
 			break;
 
 		case input:
@@ -73,10 +76,11 @@ int RoomFct(int state) {
 			break;
 
 		case receive:
-		if(USART_HasReceived(0)){
-			roomData = USART_Receive(0);
-			USART_Flush(0);
-		}
+			if(USART_HasReceived(0)){
+				roomData = USART_Receive(0);
+				USART_Flush(0);
+				isSent = 1;
+			}
 			break;
 		
 		case input:
