@@ -35,10 +35,11 @@ char pat_arr [] = {~0x04, ~0x04, ~0x04, ~0x1F, ~0x1F, ~0x04, ~0x04, ~0x04};
 unsigned char column; 			//column select
 unsigned char pattern;			//pattern to display on row
 unsigned char cnt = 0;			//counter for lcd display
-unsigned char roomData = 0x84;		    //data received via USART from uc1
+unsigned char roomData = 0x84;	//data received via USART from uc1
 unsigned char roomNum;			//display led in room # quadrant
 unsigned char roomLock;			//if(1){led off} else{led off}
-unsigned char isReceived = 0;		//bool isReceived 1, data; isReceived 0, no data
+unsigned char isReceived = 0;	//bool isReceived 1, data; isReceived 0, no data
+unsigned char goBack = 0;		//flag to go back to receive
 enum roomState {init, receive, input, display};
 int RoomFct(int state) {
 
@@ -46,24 +47,11 @@ int RoomFct(int state) {
 	// Transitions
 	switch (state) {
 		case init:
-			state = receive;
-			break;
-		
-		case receive:
-			if(isSent){
-				state = input;
-				isSent = 0;
-			}
-			break;
-
-		case input:
 			state = display;
 			break;
-			
 		case display:
 			state = display;
 			break;
-		
 		default:
 			state = init;
 			break;
@@ -75,64 +63,57 @@ int RoomFct(int state) {
 			cnt = 0;
 			break;
 
-		case receive:
+		case display:
 			if(USART_HasReceived(0)){
 				roomData = USART_Receive(0);
 				USART_Flush(0);
-				isSent = 1;
-			}
-			break;
-		
-		case input:
-			roomNum = roomData & 0x0F;
-			roomLock = (roomData & 0x80) >> 7;
-			if(roomNum == 1)
-			{
-				if(roomLock)
+				roomNum = roomData & 0x0F;
+				roomLock = (roomData & 0x80) >> 7;
+				if(roomNum == 1)
 				{
-					pat_arr[7] = ~0x05;
+					if(roomLock)
+					{
+						pat_arr[7] = ~0x05;
+					}
+					else
+					{
+						pat_arr[7] = ~0x04;
+					}
 				}
-				else
+				else if(roomNum == 2)
 				{
-					pat_arr[7] = ~0x04;
+					if(roomLock)
+					{
+						pat_arr[7] = ~0x14;
+					}
+					else
+					{
+						pat_arr[7] = ~0x04;
+					}
 				}
-			}
-			else if(roomNum == 2)
-			{
-				if(roomLock)
+				else if(roomNum == 3)
 				{
-					pat_arr[7] = ~0x14;
+					if(roomLock)
+					{
+						pat_arr[0] = ~0x05;
+					}
+					else
+					{
+						pat_arr[0] = ~0x04;
+					}
 				}
-				else
+				else if(roomNum == 4)
 				{
-					pat_arr[7] = ~0x04;
-				}
-			}
-			else if(roomNum == 3)
-			{
-				if(roomLock)
-				{
-					pat_arr[0] = ~0x14;
-				}
-				else
-				{
-					pat_arr[0] = ~0x04;
-				}
-			}
-			else if(roomNum == 4)
-			{
-				if(roomLock)
-				{
-					pat_arr[0] = ~0x14;
-				}
-				else
-				{
-					pat_arr[0] = ~0x04;
+					if(roomLock)
+					{
+						pat_arr[0] = ~0x14;
+					}
+					else
+					{
+						pat_arr[0] = ~0x04;
+					}
 				}
 			}
-			break;
-			
-		case display:
 			if(cnt < 8){
 				column = col_arr[cnt];
 				pattern = pat_arr[cnt];
@@ -143,9 +124,9 @@ int RoomFct(int state) {
 			}
 
 			break;
-		
+
 		default:
-		break;
+			break;
 	}
 	
 	PORTB = column;	
