@@ -138,7 +138,7 @@ int PasswordFct(int state)
 				password[i] = input;
 				++i;
 				LCD_Cursor(cursor++);
-				LCD_WriteData(input);
+				LCD_WriteData('*');
 			}
 			break;
 
@@ -162,7 +162,7 @@ int PasswordFct(int state)
 
 		case invalidPW:
 			if(i==0)
-			LCD_DisplayString(1,"Invalid PW!");
+				LCD_DisplayString(1,"Invalid PW!");
 			++i;
 
 			break;
@@ -270,12 +270,8 @@ int MenuFct(int state)
 			break;
 
 		case quit:
-		if(cnt == 10)
-		{
-			cnt = 0;
 			state = waitMenu;
 			break;
-		}
 
 		default:
 			state = waitMenu;
@@ -297,6 +293,7 @@ int MenuFct(int state)
 		case getRoom:
 			if(isLock)
 			{
+
 				LCD_DisplayString(1,"lock room:");
 				input = GetKeypadKey();
 				if(input != '\0')
@@ -395,8 +392,6 @@ int MenuFct(int state)
 			break;
 
 		case quit:
-			//LCD_ClearScreen();
-			LCD_DisplayString(1,"Goodbye!        ");
 			go = 0;
 			break;
 		
