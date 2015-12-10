@@ -22,7 +22,10 @@ unsigned char setPassword[4] = {'1','2','3','4'}; //set password
 unsigned char password[4];				//user input password
 unsigned char input;					//init with GetKeypad()
 int cursor = 10;						//cursor for lcd display
-
+unsigned char alertDone = 0;			//flag to signal when done transmitting alert to bluetooth
+unsigned char fails = 0;				//counter for # failed pw attempts
+unsigned char alertCnt = 0;				//alertBluetooth counter used to send string with bluetooth
+unsigned char alertString[30];			//alert string to send with bluetooth
 //menu variables
 unsigned char cnt = 0;					//Menu counter for lcd display
 unsigned char isLock = -1;				//bool isLock,1 lock; isLock,0 unlock
@@ -33,7 +36,7 @@ unsigned char sendString[80];			//string to send to bluetooth
 int b = 0;								//Menu-Bluetooth counter used to send string with bluetooth
 int sizeArr = 0;						//Menu-size of sendString used in memset
 
-enum state{wait, readPW, checkPW, validPW, invalidPW};
+enum state{wait, readPW, checkPW, validPW, invalidPW, alert, alertBluetooth};
 int PasswordFct(int state)
 {
 
@@ -42,7 +45,11 @@ int PasswordFct(int state)
 	{
 		case wait:
 			if(go == 0)
+			{
 				state = readPW;
+				fails = 0;
+				alertCnt = 0;	
+			}
 			break;
 
 		case readPW:
@@ -86,11 +93,30 @@ int PasswordFct(int state)
 			{
 				i = 0;
 				state = readPW;
+
 			}
+			if(fails == 3)
+			{
+				state = alert;
+				fails = 0;
+			}
+			
 			break;
 		
-		// case alert:
-		// 	break;
+		case alert:
+			if(i == 5)
+			{
+				i = 0;
+				state = alertBluetooth;
+			}
+			break;			
+		case alertBluetooth:
+			if(alertDone)
+			{
+				alertDone = 0;
+				state = readPW;
+			}
+			break;
 
 		default:
 			state = wait;
@@ -114,7 +140,6 @@ int PasswordFct(int state)
 				LCD_Cursor(cursor++);
 				LCD_WriteData(input);
 			}
-			
 			break;
 
 		case checkPW:
@@ -125,21 +150,43 @@ int PasswordFct(int state)
 			else
 			{
 				isPasswordValid = 0;
+				++fails;
 			}
 			break;
 
 		case validPW:
-			LCD_DisplayString(1,"Valid PW!");
+			if(i==0)
+				LCD_DisplayString(1,"Valid PW!");
 			++i;
 			break;
 
 		case invalidPW:
+			if(i==0)
 			LCD_DisplayString(1,"Invalid PW!");
+			++i;
+
+			break;
+
+		case alert:
+			if(i==0)
+				LCD_DisplayString(1,"    !ALERT!     Invalid 3 times!");
+			strcpy(alertString, "ALERT: 3 pw invalid attempts\n");
 			++i;
 			break;
 
-		// case alert:
-		// 	break;
+		case alertBluetooth:
+			if(alertCnt > 28){
+				memset(&alertString[0], 0,28);
+				alertDone = 1;
+				alertCnt = 0;
+			}
+			else{
+				if(USART_IsSendReady(1)){
+					USART_Send(alertString[alertCnt], 1);
+					alertCnt++;
+				}
+			}
+			break;
 
 		default:
 			state = wait;
