@@ -1,18 +1,35 @@
-/*
- * amalu001_lcd_keypad.c
- * prototype 1
- * Created: 11/18/2015 10:31:58 AM
- *  Author: Alyza Malunao
- */ 
+/* Partner(s) Name & E­mail: Alyza Malunao amalu001@ucr.edu
+				consultant: Shilpa Chirackel schir001@ucr.edu
 
+ * Lab Section: 21
+
+ * Assignment: Lab # 10 Custom Lab
+
+ * Exercise Description: A home security system that allows the user to enter a password using 
+  the Keypad then enable an alarm in different rooms of the house. If you enter an incorrect 
+  password more than 3 times, a message alerting you of the incident is sent to your phone. LED
+  matrix is sectioned off into 4 quadrants, where each quadrant corresponds to different rooms 
+  1-4. A lit LED within a quadrant represents the security system being enabled for that 
+  corresponding room. A message is sent to an iPhone via bluetooth whenever the security alarm 
+  is disabled/enables in a particular room. 
+
+Keypad, LCD Display, USART, Bluetooth
+enter password, password validation, menu, choose lock/unlock, choose room 1-4, 
+send info to second microcontroller using USART, send alert message using bluetooth 
+ *
+
+ * I acknowledge all content contained herein, excluding template or example
+
+ * code, is my own original work.
+
+ */
 
 #include <avr/io.h>
 #include "keypad.h"
 #include "lcd.h"
 #include "scheduler.h"
 #include "usart_ATmega1284.h"
-#include <stdio.h>
- #include <string.h>
+#include <string.h>
 
 unsigned char go = 0;					//global variable
 //password variables
@@ -168,9 +185,8 @@ int PasswordFct(int state)
 			break;
 
 		case alert:
-			if(i==0)
-				LCD_DisplayString(1,"    !ALERT!     Invalid 3 times!");
-			strcpy(alertString, "ALERT: 3 pw invalid attempts\n");
+			LCD_DisplayString(1,"    !ALERT!     Invalid 3 times!");
+			strcpy(alertString, "ALERT: 3 invalid pw attempts\n");
 			++i;
 			break;
 
@@ -319,7 +335,7 @@ int MenuFct(int state)
 		case roomStatus:
 			if(isLock)
 			{		
-				LCD_DisplayString(1,"room   is now     locked!");
+				LCD_DisplayString(1,"Room   is now     locked!");
 				LCD_Cursor(6);
 				LCD_WriteData(input);
 				LCD_Cursor(32);
@@ -343,7 +359,7 @@ int MenuFct(int state)
 			}
 			else
 			{
-				LCD_DisplayString(1,"room   is now     unlocked!");
+				LCD_DisplayString(1,"Room   is now     unlocked!");
 				LCD_Cursor(6);
 				LCD_WriteData(input);
 				LCD_Cursor(32);
@@ -434,6 +450,5 @@ int main(void)
 	
 	LCD_init();
 	
-    while(1)
-    {}
+    while(1) {}
 }
