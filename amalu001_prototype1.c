@@ -264,7 +264,7 @@ int MenuFct(int state)
 					strcpy(sendString, "Room 4 is locked!\n");
 					data = 0x84;
 				}
-				sizeArr = 17;
+				sizeArr = 17; //subtract one to get rid of ? error
 			}
 			else
 			{
