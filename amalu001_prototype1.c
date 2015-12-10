@@ -15,30 +15,36 @@
  #include <string.h>
 
 unsigned char go = 0;					//global variable
-unsigned char i = 0;					//count button presses
-unsigned char cnt = 0;					//counter for lcd display
+//password variables
+unsigned char i = 0;					//Password count key presses
 unsigned char isPasswordValid = -1;		//bool isPasswordValid,1 valid; isPasswordValid, 0 invalid
-unsigned char setPassword[4] = {'1','2','3','4'};
+unsigned char setPassword[4] = {'1','2','3','4'}; //set password
 unsigned char password[4];				//user input password
 unsigned char input;					//init with GetKeypad()
 int cursor = 10;						//cursor for lcd display
+
+//menu variables
+unsigned char cnt = 0;					//Menu counter for lcd display
 unsigned char isLock = -1;				//bool isLock,1 lock; isLock,0 unlock
-unsigned char data = 0x00;				//char to send with USART to uc2
+unsigned char data = 0x00;				//char to send with USART to matrix
 unsigned char isSent = 0;				//flag to signal when matrix receives data
 unsigned char bluetoothDone = 0;	 	//flag to signal when done transmitting to bluetooth
-unsigned char sendString[80];
-int b = 0;
-int sizeArr = 0;
+unsigned char sendString[80];			//string to send to bluetooth
+int b = 0;								//Menu-Bluetooth counter used to send string with bluetooth
+int sizeArr = 0;						//Menu-size of sendString used in memset
 
 enum state{wait, readPW, checkPW, validPW, invalidPW};
 int PasswordFct(int state)
 {
+
+	//transitions PasswordFct
 	switch(state)
 	{
 		case wait:
 			if(go == 0)
 				state = readPW;
 			break;
+
 		case readPW:
 			if(i == 0)
 			{
@@ -52,6 +58,7 @@ int PasswordFct(int state)
 				i = 0;
 			}
 			break;
+
 		case checkPW:
 
 			if(isPasswordValid == 1)
@@ -64,14 +71,16 @@ int PasswordFct(int state)
 			}
 
 			break;
+
 		case validPW:
-			if(i == 5)
+			if(i == 5) //for lcd display
 			{
 				i = 0;
 				go = 1;
 				state = wait;
 			}
 			break;
+
 		case invalidPW: 
 			if(i == 5) //for lcd display
 			{
@@ -80,17 +89,22 @@ int PasswordFct(int state)
 			}
 			break;
 		
+		// case alert:
+		// 	break;
+
 		default:
 			state = wait;
 			break;
 
 	}
+
+	//actions PasswordFct
 	switch(state)
 	{
 		case wait:
 			break;
+
 		case readPW:
-		
 			LCD_DisplayString(1,"Enter PW ");
 			input = GetKeypadKey();
 			if(input != '\0')
@@ -102,6 +116,7 @@ int PasswordFct(int state)
 			}
 			
 			break;
+
 		case checkPW:
 			if(atoi(setPassword) == atoi(password)) //check password arrays
 			{
@@ -112,14 +127,20 @@ int PasswordFct(int state)
 				isPasswordValid = 0;
 			}
 			break;
+
 		case validPW:
 			LCD_DisplayString(1,"Valid PW!");
 			++i;
 			break;
+
 		case invalidPW:
 			LCD_DisplayString(1,"Invalid PW!");
 			++i;
 			break;
+
+		// case alert:
+		// 	break;
+
 		default:
 			state = wait;
 			break;
@@ -132,6 +153,8 @@ int PasswordFct(int state)
 enum menuState {waitMenu, printMenu, getRoom, roomStatus, send, bluetooth, quit};
 int MenuFct(int state)
 {
+
+	//Transitions MenuFct
 	switch(state)
 	{
 		case waitMenu:
@@ -172,6 +195,7 @@ int MenuFct(int state)
 				state = roomStatus;
 			}
 			break;
+
 		case roomStatus:
 		if(cnt == 10)
 		{
@@ -179,6 +203,7 @@ int MenuFct(int state)
 			state = send;
 		}
 			break;
+
 		case send:
 			if(isSent){
 				state = bluetooth;
@@ -189,23 +214,28 @@ int MenuFct(int state)
 				state = send;
 			}
 			break;
+
 		case bluetooth:
 			if(bluetoothDone){
 				state = waitMenu;
 				bluetoothDone = 0;
 			}
 			break;
+
 		case quit:
-		//if(cnt == 15)
-		//{
+		if(cnt == 10)
+		{
 			cnt = 0;
 			state = waitMenu;
 			break;
-		//}
+		}
+
 		default:
 			state = waitMenu;
 			break;
 	}
+
+	//actions MenuFct
 	switch(state)
 	{
 		case waitMenu:
@@ -241,6 +271,7 @@ int MenuFct(int state)
 			}
 			
 			break;
+
 		case roomStatus:
 			if(isLock)
 			{		
@@ -291,19 +322,19 @@ int MenuFct(int state)
 				sizeArr = 19;
 				
 			}
-
 			cnt++;
-
 			break;
+
 		case send:
 			if(USART_IsSendReady(0)){
 				USART_Send(data, 0);
 				isSent = 1;
 			}
 			break;
+
 		case bluetooth:
 						
-			if(b>sizeArr){
+			if(b > sizeArr){
 				memset(&sendString[0], 0, sizeArr);
 				bluetoothDone = 1;
 				b = 0;
@@ -317,7 +348,8 @@ int MenuFct(int state)
 			break;
 
 		case quit:
-			LCD_ClearScreen();
+			//LCD_ClearScreen();
+			LCD_DisplayString(1,"Goodbye!        ");
 			go = 0;
 			break;
 		
@@ -330,9 +362,9 @@ int MenuFct(int state)
 
 int main(void)
 {
-	initUSART(0);
+	initUSART(0);		//microcontroller 2 communication
 	USART_Flush(0);
-	initUSART(1);
+	initUSART(1);		//Bluetooth LE communication
 	USART_Flush(1);
 
 	DDRA = 0xFF; PORTA = 0x00; //lcd data_bus
