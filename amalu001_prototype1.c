@@ -11,6 +11,8 @@
 #include "lcd.h"
 #include "scheduler.h"
 #include "usart_ATmega1284.h"
+#include <stdio.h>
+ #include <string.h>
 
 unsigned char go = 0;					//global variable
 unsigned char i = 0;					//count button presses
@@ -22,7 +24,11 @@ unsigned char input;					//init with GetKeypad()
 int cursor = 10;						//cursor for lcd display
 unsigned char isLock = -1;				//bool isLock,1 lock; isLock,0 unlock
 unsigned char data = 0x00;				//char to send with USART to uc2
-unsigned char isSent = 0;
+unsigned char isSent = 0;				//flag to signal when matrix receives data
+unsigned char bluetoothDone = 0;	 	//flag to signal when done transmitting to bluetooth
+unsigned char sendString[80];
+int b = 0;
+int sizeArr = 0;
 
 enum state{wait, readPW, checkPW, validPW, invalidPW};
 int PasswordFct(int state)
@@ -123,7 +129,7 @@ int PasswordFct(int state)
 
 }
 
-enum menuState {waitMenu, printMenu, getRoom, roomStatus, send, quit};
+enum menuState {waitMenu, printMenu, getRoom, roomStatus, send, bluetooth, quit};
 int MenuFct(int state)
 {
 	switch(state)
@@ -175,12 +181,18 @@ int MenuFct(int state)
 			break;
 		case send:
 			if(isSent){
-				state = waitMenu;
+				state = bluetooth;
 				isSent = 0;
 			}
 			else
 			{
 				state = send;
+			}
+			break;
+		case bluetooth:
+			if(bluetoothDone){
+				state = waitMenu;
+				bluetoothDone = 0;
 			}
 			break;
 		case quit:
@@ -237,17 +249,22 @@ int MenuFct(int state)
 				LCD_WriteData(input);
 				LCD_Cursor(32);
 				if(input == '1'){
+					strcpy(sendString, "Room 1 is locked!\n");
 					data = 0x81;
 				}
 				else if(input == '2'){
+					strcpy(sendString, "Room 2 is locked!\n");
 					data = 0x82;
 				}
 				else if(input == '3'){
+					strcpy(sendString, "Room 3 is locked!");
 					data = 0x83;
 				}
 				else if(input == '4'){
+					strcpy(sendString, "Room 4 is locked!\n");
 					data = 0x84;
 				}
+				sizeArr = 18;
 			}
 			else
 			{
@@ -256,17 +273,22 @@ int MenuFct(int state)
 				LCD_WriteData(input);
 				LCD_Cursor(32);
 				if(input == '1'){
+					strcpy(sendString, "Room 1 is unlocked!\n");
 					data = 0x01;
 				}
 				else if(input == '2'){
+					strcpy(sendString, "Room 2 is unlocked!\n");
 					data = 0x02;
 				}
 				else if(input == '3'){
+					strcpy(sendString, "Room 3 is unlocked!\n");
 					data = 0x03;
 				}
 				else if(input == '4'){
+					strcpy(sendString, "Room 4 is unlocked!\n");
 					data = 0x04;
 				}
+				sizeArr = 20;
 				
 			}
 
@@ -278,12 +300,22 @@ int MenuFct(int state)
 				USART_Send(data, 0);
 				isSent = 1;
 			}
-			if(USART_IsSendReady(1)){
-				USART_Send('R', 1);
-				isSent = 1;
-			}
-
 			break;
+		case bluetooth:
+						
+			if(b>sizeArr){
+				memset(&sendString[0], 0, sizeArr);
+				bluetoothDone = 1;
+				b = 0;
+			}
+			else{
+				if(USART_IsSendReady(1)){
+					USART_Send(sendString[b], 1);
+					b++;
+				}
+			}
+			break;
+
 		case quit:
 			LCD_ClearScreen();
 			go = 0;
