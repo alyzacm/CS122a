@@ -257,14 +257,14 @@ int MenuFct(int state)
 					data = 0x82;
 				}
 				else if(input == '3'){
-					strcpy(sendString, "Room 3 is locked!");
+					strcpy(sendString, "Room 3 is locked!\n");
 					data = 0x83;
 				}
 				else if(input == '4'){
 					strcpy(sendString, "Room 4 is locked!\n");
 					data = 0x84;
 				}
-				sizeArr = 18;
+				sizeArr = 17;
 			}
 			else
 			{
@@ -288,7 +288,7 @@ int MenuFct(int state)
 					strcpy(sendString, "Room 4 is unlocked!\n");
 					data = 0x04;
 				}
-				sizeArr = 20;
+				sizeArr = 19;
 				
 			}
 

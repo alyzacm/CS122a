@@ -99,7 +99,7 @@ int RoomFct(int state) {
 					}
 					else
 					{
-						pat_arr[7] = pat_arr[7] | ~0xFE; 
+						pat_arr[0] = pat_arr[0] | ~0xFE; 
 					}
 				}
 				else if(roomNum == 4)
@@ -110,7 +110,7 @@ int RoomFct(int state) {
 					}
 					else
 					{
-						pat_arr[7] = pat_arr[7] | ~0xEF; 
+						pat_arr[0] = pat_arr[0] | ~0xEF; 
 					}
 				}
 			}
