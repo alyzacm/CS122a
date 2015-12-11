@@ -84,7 +84,6 @@ int PasswordFct(int state)
 			break;
 
 		case checkPW:
-
 			if(isPasswordValid == 1)
 			{
 				state = validPW;
@@ -126,7 +125,8 @@ int PasswordFct(int state)
 				i = 0;
 				state = alertBluetooth;
 			}
-			break;			
+			break;	
+					
 		case alertBluetooth:
 			if(alertDone)
 			{

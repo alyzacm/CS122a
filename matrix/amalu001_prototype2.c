@@ -1,3 +1,27 @@
+/* Partner(s) Name & E­mail: Alyza Malunao amalu001@ucr.edu
+				consultant: Shilpa Chirackel schir001@ucr.edu
+
+ * Lab Section: 21
+
+ * Assignment: Lab # 10 Custom Lab
+
+ * Exercise Description: A home security system that allows the user to enter a password using 
+  the Keypad then enable an alarm in different rooms of the house. If you enter an incorrect 
+  password more than 3 times, a message alerting you of the incident is sent to your phone. LED
+  matrix is sectioned off into 4 quadrants, where each quadrant corresponds to different rooms 
+  1-4. A lit LED within a quadrant represents the security system being enabled for that 
+  corresponding room. A message is sent to an iPhone via bluetooth whenever the security alarm 
+  is disabled/enables in a particular room. 
+
+ Receive room number, lock/unlock via USART from microcontroller 1, display partition of
+ rooms with LED indicator of lock/unlock state in each room
+ *
+
+ * I acknowledge all content contained herein, excluding template or example
+
+ * code, is my own original work.
+
+ */
 #include <avr/io.h>
 #include "scheduler.h"    
 #include "usart_ATmega1284.h"
@@ -36,16 +60,16 @@ char pat_arr [] = {~0x04, ~0x04, ~0x04, ~0x1F, ~0x1F, ~0x04, ~0x04, ~0x04};
 unsigned char column; 			//column select
 unsigned char pattern;			//pattern to display on row
 unsigned char cnt = 0;			//counter for lcd display
-unsigned char roomData = 0x84;	//data received via USART from uc1
+unsigned char roomData;			//data received via USART from uc1
 unsigned char roomNum;			//display led in room # quadrant
 unsigned char roomLock;			//if(1){led off} else{led off}
 unsigned char isReceived = 0;	//bool isReceived 1, data; isReceived 0, no data
 unsigned char goBack = 0;		//flag to go back to receive
+
 enum roomState {init, receive, input, display};
 int RoomFct(int state) {
 
-
-	// Transitions
+	// RoomFct Transitions
 	switch (state) {
 		case init:
 			state = display;
@@ -58,7 +82,7 @@ int RoomFct(int state) {
 			break;
 	}
 	
-	// Actions
+	// RoomFct Actions
 	switch (state) {
 		case init:
 			cnt = 0;
@@ -66,10 +90,13 @@ int RoomFct(int state) {
 
 		case display:
 			if(USART_HasReceived(0)){
+				//receive data
 				roomData = USART_Receive(0);
 				USART_Flush(0);
+				//parse data
 				roomNum = roomData & 0x0F;
 				roomLock = (roomData & 0x80) >> 7;
+				//sets LED matrix patterns according to info transmitted
 				if(roomNum == 1)
 				{
 					if(roomLock)
@@ -115,7 +142,8 @@ int RoomFct(int state) {
 					}
 				}
 			}
-			if(cnt < 8){
+			//cycles through array to print matrix
+			if(cnt < 8){				 
 				column = col_arr[cnt];
 				pattern = pat_arr[cnt];
 				++cnt;
@@ -139,7 +167,7 @@ int RoomFct(int state) {
 
 int main(void) {
 
-	initUSART(0);
+	initUSART(0); //communication with microcontroller 1
 
 	DDRB = 0xFF; PORTB = 0x00; //column select LED matrix 5x8
 	DDRA = 0xFF; PORTA = 0x00; //pattern display LED matrix 5x8
